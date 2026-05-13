@@ -109,8 +109,10 @@ export function UploadPictureModal({ student, onClose, onSuccess }) {
       // const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
       // setUploadFile(file);
       // setUploadPreview(URL.createObjectURL(file));
+      const file = new File([blob], "camera-capture.jpg", { type: "image/jpeg" });
+      setUploadFile(file);
+      setUploadPreview(URL.createObjectURL(file));
 
-      setUploadError("TODO: completar guardado de captura desde webcam.");
       stopCamera();
     }, "image/jpeg", 0.9);
   };
@@ -126,6 +128,14 @@ export function UploadPictureModal({ student, onClose, onSuccess }) {
 
     // TODO(actividad): agregar validaciones basicas (tipo y tamano maximo).
     // Ejemplos sugeridos: image/jpeg, image/png y un limite de 2MB.
+    if (file.size > 2 * 1024 * 1024) {
+      setUploadError("El archivo no puede ser mayor a 2MB.");
+      return;
+    }
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      setUploadError("El archivo debe ser JPEG o PNG.");
+      return;
+    }
 
     setUploadFile(file);
     setUploadPreview(URL.createObjectURL(file));
@@ -143,9 +153,11 @@ export function UploadPictureModal({ student, onClose, onSuccess }) {
       onSuccess(updated);
       handleClose();
     } catch (err) {
-      setUploadError(
-        err?.message || "Error al subir la imagen. Completa la implementacion pendiente."
-      );
+      const serverError = err.response?.data?.profile_picture;
+      const messageToShow = Array.isArray(serverError)
+        ? serverError[0]
+        : (err.message || "Error al subir la imagen.");
+      setUploadError(messageToShow);
     } finally {
       setIsUploading(false);
     }

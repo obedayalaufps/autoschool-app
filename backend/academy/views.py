@@ -25,6 +25,13 @@ class StudentViewSet(viewsets.ModelViewSet):
         # TODO(actividad): Retornar StudentSerializer(student, context={"request": request}).data
         #                  cuando la subida sea exitosa.
 
+        serializer = StudentPictureSerializer(student, data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+        serializer.save()
+        return Response(StudentSerializer(student, context={"request": request}).data)
+
+
         incoming_file = request.FILES.get('profile_picture')
         if not incoming_file:
             return Response(
@@ -41,6 +48,7 @@ class StudentViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_501_NOT_IMPLEMENTED,
         )
+        
 
 class InstructorViewSet(viewsets.ModelViewSet):
     pass
