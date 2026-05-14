@@ -34,6 +34,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
+
 
 const coursesSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres"),
@@ -48,6 +50,7 @@ const coursesSchema = z.object({
     ["basic", "intermediate", "advanced"],
     "Selecciona un nivel válido",
   ),
+  is_active: z.boolean().default(true),
 });
 const LEVEL_LABELS = {
   basic: "Básico",
@@ -66,7 +69,7 @@ export default function CoursesPage() {
     handleSubmit,
     reset,
     control,
-    formState: { errors, isSubmitting },
+    ...rest
   } = useForm({
     resolver: zodResolver(coursesSchema),
     defaultValues: {
@@ -75,8 +78,11 @@ export default function CoursesPage() {
       price: 0,
       duration_hours: 0,
       level: "basic",
+      is_active: true,
     },
   });
+
+  const { errors, isSubmitting } = rest.formState;
 
   const loadCourses = async () => {
     try {
@@ -107,7 +113,7 @@ export default function CoursesPage() {
     } catch (err) {
       setError(
         err.response?.data?.detail ||
-          "Error al crear el curso. Es posible que el nombre ya exista.",
+        "Error al crear el curso. Es posible que el nombre ya exista.",
       );
     }
   };
@@ -187,6 +193,20 @@ export default function CoursesPage() {
                   )}
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="is_active">Activo</Label>
+                  <Controller
+                    name="is_active"
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        id="is_active"
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    )}
+                  />
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="level">Nivel</Label>
                   <Controller
                     name="level"
@@ -198,7 +218,6 @@ export default function CoursesPage() {
                       >
                         <SelectTrigger>
                           <SelectValue>
-                            {/* Este truco fuerza a mostrar la etiqueta del diccionario si hay un valor seleccionado */}
                             {field.value
                               ? LEVEL_LABELS[field.value]
                               : "Selecciona un nivel"}
@@ -214,6 +233,7 @@ export default function CoursesPage() {
                       </Select>
                     )}
                   />
+
                   {errors.level && (
                     <p className="text-sm text-red-500">
                       {errors.level.message}
